@@ -133,7 +133,7 @@ function App() {
     }
   };
   return (
-    <div className="w-100 overflow-hidden">
+    <div className="w-100 overflow-hidden " style={{background:"#FEFEFF"}}>
       <header className="container-fluid header-section overflow-hidden">
         <nav className="navbar navbar-expand custom-nav-container">
           <ul className="navbar-nav me-auto ms-auto d-flex align-items-end">
