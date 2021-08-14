@@ -21,48 +21,62 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [OT, setOT] = useState(0);
   const [YT, setYT] = useState(0);
-  const usdcToPendleOTYT = async (amount, account) => {
+  const [usdc, setUsdc] = useState(0);
+  const usdcToPendleOTYT = async () => {
+    const amount=usdc;
+    setUsdc(amount)
     console.log("");
     if (amount < 1) {
-      // let obj = {
-      //   show: true,
-      //   severity: "error",
-      //   message: "A minimum of 1 eth is required to participate!",
-      //   title: "Stake",
-      // };
-      // setMessage(obj);
-      //
+      alert("A minimum of 1 eth is required to participate!")
+      
     } else {
       if (account === null) {
-        // //  showAlert("Whoops...", "Metamask is not connected.");
-        // let obj2 = {
-        //   show: true,
-        //   severity: "error",
-        //   message: "Whoops..., Metamask is not connected.",
-        //   title: "Stake",
-        // };
-        // setMessage(obj2);
+       
+        alert("Whoops..., Metamask is not connected.")
       } else {
+        try {
+      
         const web3 = window.web3;
-
         let _amount = amount.toString();
         let contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
-        try {
-          contract.methods
-            .usdcToPendleOTYT(_amount, "1629009497")
+      
+ let contract2 = new web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
+        let approved = await contract2.methods
+          .approve(account, _amount)
+          .send({ from: account })
+          .on("transactionHash", async (hash) => {
+            console.log("Your transaction is pending");
+            alert("Your transaction is pending")
+          })
+          .on("receipt", async (receipt) => {
+            alert("Your transaction is Approved");
+            contract.methods
+            .usdcToPendleOTYT(_amount, "1672272000")
             .send({
               from: account,
             })
             .on("transactionHash", async (hash) => {
               console.log("Your transaction is pending");
+              alert("Your transaction is pending")
             })
             .on("receipt", async (receipt) => {
-              console.log("Your transaction is confirmed", receipt);
+              alert("Your transaction is confirmed");
             })
             .on("error", async (error) => {
+      alert(error.message)
+
               console.log("error", error);
             });
+          })
+          .on("error", async (error) => {
+      alert(error.message)
+
+            console.log("error", error);
+          });
+        
         } catch (e) {
+      alert("Something wrong")
+
           console.log("error rejection", e);
         }
       }
@@ -84,27 +98,14 @@ function App() {
         isConnected = false;
         setErrorState(true);
         alert("metamask is not installed");
-        // notification.open({
-        //     message: 'Metamask is not installed',
-        //     description:
-        //         ' please install it on your browser to connect.',
-        //     duration: 500,
-        // });
-        // "Metamask is not installed, please install it on your browser to connect.",
       }
       if (isConnected === true) {
         const web3 = window.web3;
         let accounts = await web3.eth.getAccounts();
         setAccount(accounts[0]);
-        // this.props.dispatch(login(accounts[0]));
-        console.log("ABI", ABI);
-        console.log("CONTRACT_ADDRESS", CONTRACT_ADDRESS);
         let contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
-        console.log(contract.methods);
-        usdcToPendleOTYT(12, accounts[0]);
-
+       
         window.ethereum.on("accountsChanged", function (accounts) {
-          // this.props.dispatch(login(accounts[0]));
           setAccount(accounts[0]);
         });
       }
@@ -120,13 +121,15 @@ function App() {
       let _amount = e.target.value.toString();
       let contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
       try {
-        let contract2 = new web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
-        let approved = await contract2.methods
-          .approve(account, _amount)
-          .send({ from: account });
+        // let contract2 = new web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
+        // let approved = await contract2.methods
+        //   .approve(account, _amount)
+        //   .send({ from: account });
         let v = await contract.methods.commissionAmount(_amount).call();
         // .send({from:account})
         console.log(v);
+        setOT(e.target.value-v)
+        setYT(e.target.value-v)
       } catch (e) {
         console.log("error rejection", e);
       }
@@ -151,7 +154,8 @@ function App() {
           </ul>
 
           {/* </span> */}
-          <button className="header-connect-btn">Connect</button>
+          <button className="header-connect-btn"
+          onClick={() => metamask()}>{account ? `${account.slice(0,4)}...${ account.slice(account.length-4,account.length)}` : "Connect"}</button>
           {/* </div> */}
         </nav>
       </header>
@@ -165,11 +169,11 @@ function App() {
                     <b>SWAP</b>
                   </span>
                 </div>
-                <div className="col-6 ms-auto d-flex px-4 justify-content-end">
+                {/* <div className="col-6 ms-auto d-flex px-4 justify-content-end">
                   <span>
                     <Setting />
                   </span>
-                </div>
+                </div> */}
               </div>
               <div className="row swap-heading">
                 <div className="col-12">
@@ -180,25 +184,23 @@ function App() {
                 <div className="col date-container-text">
                   <span>Expiry</span>
                 </div>
-                <div className="col date-picker">
-                  <DatePicker
+                <div className="col date-picker d-flex justify-content-end">
+                <Dropdown>
+                        <Dropdown.Toggle variant="none" id="dropdown-basic">
+                        29 Dec 2021
+                        </Dropdown.Toggle>
+
+                        <Dropdown.Menu>
+                          <Dropdown.Item href="#/action-1">29 Dec 2021</Dropdown.Item>
+                        </Dropdown.Menu>
+                      </Dropdown>
+                  {/* <DatePicker
                     format="dd-MMMM-yyyy"
                     views={["year", "month", "date"]}
                     value={selectedDate}
                     onChange={handleDateChange}
                   />
-                  {/* <DatePicker id="example-datepicker"
-                className="date-picker" 
-                    value   = {new Date().toISOString()} 
-                    dateFormat="DD-mmmm-YYYY"
-                    // onChange= {(v,f) => this.handleChange(v, f)}
-                     /> */}
-                  {/* <input
-                    id="party"
-                    type="date"
-                    name="partydate"
-                    placeholder="Expiry"
-                  /> */}
+                 */}
                 </div>
               </div>
 
@@ -209,15 +211,19 @@ function App() {
                   </div>
                 </div>
                 <div className="row">
-                  <div className="col-4 d-flex align-items-center">
+                  <div className="col-8 d-flex align-items-center">
                     <input
                       type="number"
+                      style={{width:"100%"}}
                       id="quantity"
                       name="quantity"
-                      value="0.0"
+                      value={usdc}
+
+                      onChange={(e)=> {getCommision(e)
+                        setUsdc(e.target.value)}}
                     />
                   </div>
-                  <div className="col-8 d-flex justify-content-end">
+                  <div className="col-4 d-flex justify-content-end">
                     <div className="btn-group">
                       {/* <div className="dropdown-menu">
                     <a className="dropdown-item" href="#">Doller</a>
@@ -226,11 +232,11 @@ function App() {
                   </div> */}
                       <Dropdown>
                         <Dropdown.Toggle variant="none" id="dropdown-basic">
-                          UDSC
+                          USDC
                         </Dropdown.Toggle>
 
                         <Dropdown.Menu>
-                          <Dropdown.Item href="#/action-1">UDSC</Dropdown.Item>
+                          <Dropdown.Item href="#/action-1">USDC</Dropdown.Item>
                         </Dropdown.Menu>
                       </Dropdown>
                     </div>
@@ -249,21 +255,21 @@ function App() {
               <div className="row pt-3 d-flex  justify-content-center g-0">
                 <div className="col-sm-5 col-12 stake-container-2 bg-light">
                   <div className="row m-1">
-                    <div className="col-12">
+                    <div className="col-12 px-0">
                       <span>To</span>
                     </div>
                   </div>
                   <div className="row m-1">
-                    <div className="col-9">
+                    <div className="col-9 px-0">
                       <input
                         type="number"
                         id="quantity"
                         name="quantity"
-                        value="0.0"
-                        size="20"
+                        value={YT}
+                        style={{width:"100%"}}
                       />
                     </div>
-                    <div className="col-3 d-flex justify-content-end">
+                    <div className="col-3 px-0 d-flex justify-content-end align-items-center">
                       <span>YT</span>
                     </div>
                   </div>
@@ -273,21 +279,21 @@ function App() {
                 </div>
                 <div className="col-sm-5 col-12 stake-container-2 bg-light">
                   <div className="row m-1">
-                    <div className="col-12">
+                    <div className="col-12 px-0">
                       <span>To</span>
                     </div>
                   </div>
                   <div className="row m-1">
-                    <div className="col-9">
+                    <div className="col-9 px-0">
                       <input
                         type="number"
                         id="quantity"
                         name="quantity"
                         style={{ width: "100%" }}
-                        value="0.0"
+                        value={OT}
                       />
                     </div>
-                    <div className="col-3 d-flex justify-content-end">
+                    <div className="col-3 px-0 d-flex justify-content-end align-items-center">
                       <span>OT</span>
                     </div>
                   </div>
@@ -295,7 +301,8 @@ function App() {
               </div>
               <div className="row">
                 <div className="col-12">
-                  <button className="card-connect-btn">Connect a wallet</button>
+                 {account ? <button className="card-connect-btn" onClick={usdcToPendleOTYT}>Swap</button>:
+                 <button className="card-connect-btn">Connect a wallet</button>}
                 </div>
               </div>
             </div>

@@ -1,27 +1,28 @@
 {
   "files": {
-    "main.css": "/static/css/main.63f8845b.chunk.css",
-    "main.js": "/static/js/main.a678ae7b.chunk.js",
-    "main.js.map": "/static/js/main.a678ae7b.chunk.js.map",
-    "runtime-main.js": "/static/js/runtime-main.dbe51ce0.js",
-    "runtime-main.js.map": "/static/js/runtime-main.dbe51ce0.js.map",
-    "static/css/2.3ab4f688.chunk.css": "/static/css/2.3ab4f688.chunk.css",
-    "static/js/2.118fb939.chunk.js": "/static/js/2.118fb939.chunk.js",
-    "static/js/2.118fb939.chunk.js.map": "/static/js/2.118fb939.chunk.js.map",
-    "static/js/3.6a7806ea.chunk.js": "/static/js/3.6a7806ea.chunk.js",
-    "static/js/3.6a7806ea.chunk.js.map": "/static/js/3.6a7806ea.chunk.js.map",
+    "main.css": "/static/css/main.0808b915.chunk.css",
+    "main.js": "/static/js/main.ca931b7c.chunk.js",
+    "main.js.map": "/static/js/main.ca931b7c.chunk.js.map",
+    "runtime-main.js": "/static/js/runtime-main.5ee9305c.js",
+    "runtime-main.js.map": "/static/js/runtime-main.5ee9305c.js.map",
+    "static/css/2.245fb2c5.chunk.css": "/static/css/2.245fb2c5.chunk.css",
+    "static/js/2.c3c52aee.chunk.js": "/static/js/2.c3c52aee.chunk.js",
+    "static/js/2.c3c52aee.chunk.js.map": "/static/js/2.c3c52aee.chunk.js.map",
+    "static/js/3.d6c807fb.chunk.js": "/static/js/3.d6c807fb.chunk.js",
+    "static/js/3.d6c807fb.chunk.js.map": "/static/js/3.d6c807fb.chunk.js.map",
     "index.html": "/index.html",
-    "static/css/2.3ab4f688.chunk.css.map": "/static/css/2.3ab4f688.chunk.css.map",
-    "static/css/main.63f8845b.chunk.css.map": "/static/css/main.63f8845b.chunk.css.map",
-    "static/js/2.118fb939.chunk.js.LICENSE.txt": "/static/js/2.118fb939.chunk.js.LICENSE.txt",
+    "static/css/2.245fb2c5.chunk.css.map": "/static/css/2.245fb2c5.chunk.css.map",
+    "static/css/main.0808b915.chunk.css.map": "/static/css/main.0808b915.chunk.css.map",
+    "static/js/2.c3c52aee.chunk.js.LICENSE.txt": "/static/js/2.c3c52aee.chunk.js.LICENSE.txt",
     "static/media/arrow-down.63da375b.svg": "/static/media/arrow-down.63da375b.svg",
+    "static/media/index.css": "/static/media/dm-sans-latin-ext-400-normal.652b69da.woff2",
     "static/media/setting.b86b06cb.svg": "/static/media/setting.b86b06cb.svg"
   },
   "entrypoints": [
-    "static/js/runtime-main.dbe51ce0.js",
-    "static/css/2.3ab4f688.chunk.css",
-    "static/js/2.118fb939.chunk.js",
-    "static/css/main.63f8845b.chunk.css",
-    "static/js/main.a678ae7b.chunk.js"
+    "static/js/runtime-main.5ee9305c.js",
+    "static/css/2.245fb2c5.chunk.css",
+    "static/js/2.c3c52aee.chunk.js",
+    "static/css/main.0808b915.chunk.css",
+    "static/js/main.ca931b7c.chunk.js"
   ]
 }
