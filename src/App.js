@@ -9,73 +9,92 @@ import {
 import { ReactComponent as Setting } from "./assets/images/setting.svg";
 import { ReactComponent as ArrowDown } from "./assets/images/arrow-down.svg";
 import { Dropdown } from "react-bootstrap";
-import { DatePicker } from "@material-ui/pickers";
 
 import "./styles/index.css";
 
 function App() {
-  const [selectedDate, handleDateChange] = useState(new Date());
-  const [account, setAccount] = useState(null);
-  const [error, setError] = useState(false);
   const [errorState, setErrorState] = useState(false);
+  const [account, setAccount] = useState(null);
+  const [allowance, setAllowance] = useState(0);
+  const [decimals, setDecimals] = useState(1);
   const [loading, setLoading] = useState(false);
   const [OT, setOT] = useState(0);
   const [YT, setYT] = useState(0);
   const [usdc, setUsdc] = useState(0);
   const usdcToPendleOTYT = async () => {
-    const amount=usdc;
-    setUsdc(amount)
-    console.log("");
+    const amount = usdc;
+    setUsdc(amount);
     if (amount < 1) {
-      alert("A minimum of 1 eth is required to participate!")
-      
+      alert("A minimum of 1 eth is required to participate!");
     } else {
       if (account === null) {
-       
-        alert("Whoops..., Metamask is not connected.")
+        alert("Whoops..., Metamask is not connected.");
       } else {
         try {
-      
-        const web3 = window.web3;
-        let _amount = amount.toString();
-        let contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
-      
- let contract2 = new web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
-        let approved = await contract2.methods
-          .approve(account, _amount)
-          .send({ from: account })
-          .on("transactionHash", async (hash) => {
-            console.log("Your transaction is pending");
-            alert("Your transaction is pending")
-          })
-          .on("receipt", async (receipt) => {
-            alert("Your transaction is Approved");
+          const web3 = window.web3;
+          let _amount = amount.toString();
+          let contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
+
+          if (allowance<=amount) {
+       
             contract.methods
-            .usdcToPendleOTYT(_amount, "1672272000")
-            .send({
-              from: account,
-            })
-            .on("transactionHash", async (hash) => {
-              console.log("Your transaction is pending");
-              alert("Your transaction is pending")
-            })
-            .on("receipt", async (receipt) => {
-              alert("Your transaction is confirmed");
-            })
-            .on("error", async (error) => {
-      alert(error.message)
+              .usdcToPendleOTYT(
+                (Math.pow(10, decimals) * amount).toString(),
+                "1672272000"
+              )
+              .send({
+                from: account,
+                amount: (Math.pow(10, decimals) * amount).toString(),
+              })
+              .on("transactionHash", async (hash) => {
+                console.log("Your transaction is pending");
+                alert("Your transaction is pending");
+              })
+              .on("receipt", async (receipt) => {
+                alert("Your transaction is confirmed");
+              })
+              .on("error", async (error) => {
+                alert(error.message);
 
-              console.log("error", error);
-            });
-          })
-          .on("error", async (error) => {
-      alert(error.message)
+                console.log("error", error);
+              });
+          } else {
+            let contract2 = new web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
+            let approved = await contract2.methods
+              .approve(account, _amount)
+              .send({ from: account })
+              .on("transactionHash", async (hash) => {
+                console.log("Your transaction is pending");
+                alert("Your transaction is pending");
+              })
+              .on("receipt", async (receipt) => {
+                alert("Your transaction is Approved");
+                contract.methods
+                  .usdcToPendleOTYT(_amount, "1672272000")
+                  .send({
+                    from: account,
+                  })
+                  .on("transactionHash", async (hash) => {
+                    console.log("Your transaction is pending");
+                    alert("Your transaction is pending");
+                  })
+                  .on("receipt", async (receipt) => {
+                    alert("Your transaction is confirmed");
+                  })
+                  .on("error", async (error) => {
+                    alert(error.message);
 
-            console.log("error", error);
-          });
-        
+                    console.log("error", error);
+                  });
+              })
+              .on("error", async (error) => {
+                alert(error.message);
+
+                console.log("error", error);
+              });
+          }
         } catch (e) {
-      alert("Something wrong")
+          alert("Something wrong");
 
           console.log("error rejection", e);
         }
@@ -103,10 +122,23 @@ function App() {
         const web3 = window.web3;
         let accounts = await web3.eth.getAccounts();
         setAccount(accounts[0]);
-        let contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
-       
-        window.ethereum.on("accountsChanged", function (accounts) {
+        let contract2 = new web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
+
+        const decimal = await contract2.methods.decimals().call();
+        setDecimals(decimal);
+        const allowance = await contract2.methods
+          .allowance(accounts[0], accounts[0])
+          .call();
+        setAllowance(allowance);
+        window.ethereum.on("accountsChanged", async function (accounts) {
           setAccount(accounts[0]);
+          let contract2 = new web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
+          const decimal = await contract2.methods.decimals().call();
+          const allowance = await contract2.methods
+            .allowance(accounts[0], accounts[0])
+            .call();
+          setDecimals(decimal);
+          setAllowance(allowance);
         });
       }
     } catch (error) {
@@ -114,29 +146,44 @@ function App() {
     }
   };
   const getCommision = async (e) => {
-    if (account === null) {
-    } else {
-      const web3 = window.web3;
+    if (e.target.value > -1) {
+      setUsdc(e.target.value);
 
-      let _amount = e.target.value.toString();
-      let contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
-      try {
-        // let contract2 = new web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
-        // let approved = await contract2.methods
-        //   .approve(account, _amount)
-        //   .send({ from: account });
-        let v = await contract.methods.commissionAmount(_amount).call();
-        // .send({from:account})
-        console.log(v);
-        setOT(e.target.value-v)
-        setYT(e.target.value-v)
-      } catch (e) {
-        console.log("error rejection", e);
+      if (account === null) {
+      } else {
+        const web3 = window.web3;
+        if (e.target.value > 0) {
+          let _amount = (Math.pow(10, decimals) * e.target.value).toString();
+          let contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
+          try {
+            // let contract2 = new web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
+            // let approved = await contract2.methods
+            //   .approve(account, _amount)
+            //   .send({ from: account });
+            let v = await contract.methods.commissionAmount(_amount).call();
+            // .send({from:account})
+            console.log(v);
+            setOT(
+              (
+                Math.pow(10, -decimals) *
+                (Math.pow(10, decimals) * e.target.value - v)
+              ).toFixed(2)
+            );
+            setYT(
+              (
+                Math.pow(10, -decimals) *
+                (Math.pow(10, decimals) * e.target.value - v)
+              ).toFixed(2)
+            );
+          } catch (e) {
+            console.log("error rejection", e);
+          }
+        }
       }
     }
   };
   return (
-    <div className="w-100 overflow-hidden " style={{background:"#FEFEFF"}}>
+    <div className="w-100 overflow-hidden " style={{ background: "#FEFEFF" }}>
       <header className="container-fluid header-section overflow-hidden">
         <nav className="navbar navbar-expand custom-nav-container">
           <ul className="navbar-nav me-auto ms-auto d-flex align-items-end">
@@ -152,11 +199,14 @@ function App() {
               </a>
             </li>
           </ul>
-
-          {/* </span> */}
-          <button className="header-connect-btn"
-          onClick={() => metamask()}>{account ? `${account.slice(0,4)}...${ account.slice(account.length-4,account.length)}` : "Connect"}</button>
-          {/* </div> */}
+          <button className="header-connect-btn" onClick={() => metamask()}>
+            {account
+              ? `${account.slice(0, 4)}...${account.slice(
+                  account.length - 4,
+                  account.length
+                )}`
+              : "Connect"}
+          </button>
         </nav>
       </header>
       <div className="row p-5">
@@ -185,22 +235,17 @@ function App() {
                   <span>Expiry</span>
                 </div>
                 <div className="col date-picker d-flex justify-content-end">
-                <Dropdown>
-                        <Dropdown.Toggle variant="none" id="dropdown-basic">
-                        29 Dec 2021
-                        </Dropdown.Toggle>
+                  <Dropdown>
+                    <Dropdown.Toggle variant="none" id="dropdown-basic">
+                      29 Dec 2021
+                    </Dropdown.Toggle>
 
-                        <Dropdown.Menu>
-                          <Dropdown.Item href="#/action-1">29 Dec 2021</Dropdown.Item>
-                        </Dropdown.Menu>
-                      </Dropdown>
-                  {/* <DatePicker
-                    format="dd-MMMM-yyyy"
-                    views={["year", "month", "date"]}
-                    value={selectedDate}
-                    onChange={handleDateChange}
-                  />
-                 */}
+                    <Dropdown.Menu>
+                      <Dropdown.Item href="#/action-1">
+                        29 Dec 2021
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
                 </div>
               </div>
 
@@ -214,22 +259,17 @@ function App() {
                   <div className="col-8 d-flex align-items-center">
                     <input
                       type="number"
-                      style={{width:"100%"}}
+                      style={{ width: "100%" }}
                       id="quantity"
                       name="quantity"
                       value={usdc}
-
-                      onChange={(e)=> {getCommision(e)
-                        setUsdc(e.target.value)}}
+                      onChange={(e) => {
+                        getCommision(e);
+                      }}
                     />
                   </div>
                   <div className="col-4 d-flex justify-content-end">
                     <div className="btn-group">
-                      {/* <div className="dropdown-menu">
-                    <a className="dropdown-item" href="#">Doller</a>
-                    <a className="dropdown-item" href="#">PKR</a>
-                    <a className="dropdown-item" href="#">POUNDS</a>
-                  </div> */}
                       <Dropdown>
                         <Dropdown.Toggle variant="none" id="dropdown-basic">
                           USDC
@@ -266,7 +306,7 @@ function App() {
                         id="quantity"
                         name="quantity"
                         value={YT}
-                        style={{width:"100%"}}
+                        style={{ width: "100%" }}
                       />
                     </div>
                     <div className="col-3 px-0 d-flex justify-content-end align-items-center">
@@ -301,19 +341,24 @@ function App() {
               </div>
               <div className="row">
                 <div className="col-12">
-                 {account ? <button className="card-connect-btn" onClick={usdcToPendleOTYT}>Swap</button>:
-                 <button className="card-connect-btn">Connect a wallet</button>}
+                  {account ? (
+                    <button
+                      className="card-connect-btn"
+                      onClick={usdcToPendleOTYT}
+                    >
+                      Swap
+                    </button>
+                  ) : (
+                    <button className="card-connect-btn">
+                      Connect a wallet
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      {/* abc
-      <button onClick={() => metamask()}>
-        {account ? account : "Connect metamask"}
-      </button>
-      <input onChange={(e) => getCommision(e)}></input> */}
     </div>
   );
 }
