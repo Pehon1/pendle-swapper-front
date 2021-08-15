@@ -177,7 +177,7 @@ function App() {
               </div>
               <div className="row swap-heading">
                 <div className="col-12">
-                  <span> Convert USDC to Pendle a USDC YT and OT</span>
+                  <span> Convert USDC to Pendle aUSDC YT and OT</span>
                 </div>
               </div>
               <div className="row date-container d-flex  align-items-center mb-3 g-0">
