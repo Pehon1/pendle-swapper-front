@@ -9,7 +9,8 @@ import {
 import { ReactComponent as Setting } from "./assets/images/setting.svg";
 import { ReactComponent as ArrowDown } from "./assets/images/arrow-down.svg";
 import { Dropdown } from "react-bootstrap";
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import "./styles/index.css";
 
 function App() {
@@ -25,17 +26,23 @@ function App() {
     const amount = usdc;
     setUsdc(amount);
     if (amount < 1) {
-      alert("A minimum of 1 eth is required to participate!");
+      toast.error("A minimum of 1 eth is required to participate!", {
+        position: toast.POSITION.TOP_RIGHT
+      });
+      // alert("A minimum of 1 eth is required to participate!");
     } else {
       if (account === null) {
-        alert("Whoops..., Metamask is not connected.");
+        toast.error("Whoops..., Metamask is not connected.", {
+          position: toast.POSITION.TOP_RIGHT
+        });
+        // alert("Whoops..., Metamask is not connected.");
       } else {
         try {
           const web3 = window.web3;
           let _amount = amount.toString();
           let contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
 
-          if (allowance<=amount) {
+          if (allowance>=amount) {
        
             contract.methods
               .usdcToPendleOTYT(
@@ -47,15 +54,21 @@ function App() {
                 amount: (Math.pow(10, decimals) * amount).toString(),
               })
               .on("transactionHash", async (hash) => {
-                console.log("Your transaction is pending");
-                alert("Your transaction is pending");
+              
+                toast.success("Your transaction is pending", {
+                  position: toast.POSITION.TOP_RIGHT
+                });
               })
               .on("receipt", async (receipt) => {
-                alert("Your transaction is confirmed");
+                
+                toast.success("Your transaction is confirmed ", {
+                  position: toast.POSITION.TOP_RIGHT
+                });
               })
               .on("error", async (error) => {
-                alert(error.message);
-
+                toast.error("Something went wrong", {
+                  position: toast.POSITION.TOP_RIGHT
+                });
                 console.log("error", error);
               });
           } else {
@@ -64,38 +77,52 @@ function App() {
               .approve(account, _amount)
               .send({ from: account })
               .on("transactionHash", async (hash) => {
-                console.log("Your transaction is pending");
-                alert("Your transaction is pending");
+                
+                toast.error("Your transaction is pending", {
+                  position: toast.POSITION.TOP_RIGHT
+                });
+
               })
               .on("receipt", async (receipt) => {
-                alert("Your transaction is Approved");
+                toast.success("Your transaction is Approved", {
+                  position: toast.POSITION.TOP_RIGHT
+                });
                 contract.methods
                   .usdcToPendleOTYT(_amount, "1672272000")
                   .send({
                     from: account,
                   })
                   .on("transactionHash", async (hash) => {
-                    console.log("Your transaction is pending");
-                    alert("Your transaction is pending");
+                    toast.success("Your transaction is Pending", {
+                      position: toast.POSITION.TOP_RIGHT
+                    });
                   })
                   .on("receipt", async (receipt) => {
-                    alert("Your transaction is confirmed");
+                    toast.success("Your transaction is Confirmed", {
+                      position: toast.POSITION.TOP_RIGHT
+                    });
                   })
                   .on("error", async (error) => {
-                    alert(error.message);
+                    toast.error(error.message, {
+                      position: toast.POSITION.TOP_RIGHT
+                    });
 
                     console.log("error", error);
                   });
               })
               .on("error", async (error) => {
-                alert(error.message);
-
+                toast.error("Something went wrong", {
+                  position: toast.POSITION.TOP_RIGHT
+                });
                 console.log("error", error);
               });
           }
         } catch (e) {
-          alert("Something wrong");
-
+          toast.error("Something went wrong", {
+            position: toast.POSITION.TOP_RIGHT
+          });
+    
+        
           console.log("error rejection", e);
         }
       }
@@ -116,7 +143,8 @@ function App() {
       } else {
         isConnected = false;
         setErrorState(true);
-        alert("metamask is not installed");
+        toast.error("Whoops..., Metamask is not connected.");
+
       }
       if (isConnected === true) {
         const web3 = window.web3;
@@ -184,6 +212,7 @@ function App() {
   };
   return (
     <div className="w-100 overflow-hidden " style={{ background: "#FEFEFF" }}>
+      <ToastContainer />
       <header className="container-fluid header-section overflow-hidden">
         <nav className="navbar navbar-expand custom-nav-container">
           <ul className="navbar-nav me-auto ms-auto d-flex align-items-end">
