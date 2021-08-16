@@ -9,9 +9,25 @@
 body {
     font-family: "DM Sans";
   }
-.date-picker {
+  .date-picker {
+display: flex;
+justify-content: end;
+  }
+.date-picker > select {
   box-shadow: none !important;
+  border: 0px !important;
+  background: transparent;
+  padding-right: 0px;
+
+  
 }
+.date-picker > select:hover{
+  box-shadow: none !important;
+  border: 0px !important;
+  background: transparent;
+  padding-right: 0px;
+}
+
 .header-section {
   border-bottom: 1px solid #fefeff;
   background-color: #fff !important;

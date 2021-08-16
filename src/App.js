@@ -8,15 +8,12 @@ import {
 } from "./constants/data";
 import { ReactComponent as Setting } from "./assets/images/setting.svg";
 import { ReactComponent as ArrowDown } from "./assets/images/arrow-down.svg";
-import { Dropdown } from "react-bootstrap";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { Dropdown, Form } from "react-bootstrap";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./styles/index.css";
 
-
-
 function App() {
-
   const [errorState, setErrorState] = useState(false);
   const [account, setAccount] = useState(null);
   const [allowance, setAllowance] = useState(0);
@@ -25,100 +22,103 @@ function App() {
   const [OT, setOT] = useState(0);
   const [YT, setYT] = useState(0);
   const [usdc, setUsdc] = useState(0);
-
+  const date = [ 1672272000];
+  const [currentDate, setCurrentDate] = useState(null);
   const convertNow = async () => {
-    pendleContract().methods
-      .usdcToPendleOTYT(
-        usdc,
-        "1672272000"
-      )
+    pendleContract()
+      .methods.usdcToPendleOTYT(usdc, date[currentDate].toString())
       .send({
-        from: account
+        from: account,
       })
       .on("transactionHash", async (hash) => {
         toast.success("Swap in progress", {
-          position: toast.POSITION.TOP_RIGHT
+          position: toast.POSITION.TOP_RIGHT,
         });
       })
       .on("receipt", async (receipt) => {
         toast.success("Swap complete", {
-          position: toast.POSITION.TOP_RIGHT
+          position: toast.POSITION.TOP_RIGHT,
         });
       })
       .on("error", async (error) => {
         toast.error("Something went wrong", {
-          position: toast.POSITION.TOP_RIGHT
+          position: toast.POSITION.TOP_RIGHT,
         });
         console.log("error", error);
       });
-  }
+  };
 
   const getApproval = async () => {
-    await erc20Contract().methods
-      .approve(CONTRACT_ADDRESS, (Math.pow(10, decimals) * usdc).toString())
+    await erc20Contract()
+      .methods.approve(
+        CONTRACT_ADDRESS,
+        (Math.pow(10, decimals) * usdc).toString()
+      )
       .send({ from: account })
       .on("transactionHash", async (hash) => {
         toast.error("USDC spend approval processing", {
-          position: toast.POSITION.TOP_RIGHT
+          position: toast.POSITION.TOP_RIGHT,
         });
       })
       .on("receipt", async (receipt) => {
-        checkAllowance()
+        checkAllowance();
         toast.success("USDC spend approval successful", {
-          position: toast.POSITION.TOP_RIGHT
+          position: toast.POSITION.TOP_RIGHT,
         });
       })
       .on("error", async (error) => {
         toast.error("Something went wrong", {
-          position: toast.POSITION.TOP_RIGHT
+          position: toast.POSITION.TOP_RIGHT,
         });
         console.log("error", error);
       });
-  }
-
+  };
   const usdcToPendleOTYT = async () => {
+    accounts();
+    checkAllowance();
+    console.log(currentDate)
+if(currentDate===null){
+  toast.error("Select Date from Dropdown", {
+    position: toast.POSITION.TOP_RIGHT,
+  });
 
-    accounts()
-    checkAllowance()
-
-    if (account === null ) { 
+}
+   else if (account === null) {
       toast.error("Whoops..., Metamask is not connected.", {
-        position: toast.POSITION.TOP_RIGHT
+        position: toast.POSITION.TOP_RIGHT,
       });
-      return
+      return;
     }
     if (usdc < 1) {
       toast.error("A minimum of 1 USDC is required for the swap!", {
-        position: toast.POSITION.TOP_RIGHT
+        position: toast.POSITION.TOP_RIGHT,
       });
     } else {
       try {
-        if (allowance >= (Math.pow(10, decimals) * usdc)) {
-          await convertNow()
+        if (allowance >= Math.pow(10, decimals) * usdc) {
+          await convertNow();
         } else {
-          await getApproval()
-          await convertNow()
+          await getApproval();
+          await convertNow();
         }
       } catch (e) {
         toast.error("Something went wrong", {
-          position: toast.POSITION.TOP_RIGHT
+          position: toast.POSITION.TOP_RIGHT,
         });
         console.log("error rejection", e);
       }
-    
     }
   };
 
   const erc20Contract = () => {
     return new window.web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
-  }
+  };
 
   const pendleContract = () => {
-    return new window.web3.eth.Contract(ABI, CONTRACT_ADDRESS)
-  }
+    return new window.web3.eth.Contract(ABI, CONTRACT_ADDRESS);
+  };
 
   const web3 = async () => {
-
     if (window.ethereum) {
       window.web3 = new Web3(window.ethereum);
       await window.ethereum.enable();
@@ -129,91 +129,93 @@ function App() {
     } else {
       setErrorState(true);
       toast.error("Whoops..., Metamask is not connected.");
-      return false
+      return false;
     }
-  }
+  };
 
   const accounts = async () => {
     const accounts = await window.web3.eth.getAccounts();
-    setAccount(accounts[0])
-    return accounts
-  }
+    setAccount(accounts[0]);
+    return accounts;
+  };
 
   const checkAllowance = async () => {
-    const _accounts = await accounts()
+    const _accounts = await accounts();
     try {
-      const _allowance = await (erc20Contract()).methods
-        .allowance(_accounts[0], CONTRACT_ADDRESS)
+      const _allowance = await erc20Contract()
+        .methods.allowance(_accounts[0], CONTRACT_ADDRESS)
         .call();
       setAllowance(_allowance);
-    } catch (error ){
-      console.log(error)
-    }    
-  }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const metamask = async () => {
-    
     let isConnected = false;
 
     try {
-
       setErrorState(false);
 
-      isConnected = await web3()
+      isConnected = await web3();
 
       if (isConnected === true) {
-
         toast.success("Wallet connected", {
-          position: toast.POSITION.TOP_RIGHT
+          position: toast.POSITION.TOP_RIGHT,
         });
 
         const web3 = window.web3;
-        
-        let _accounts = await accounts()
+
+        let _accounts = await accounts();
 
         const decimal = await erc20Contract().methods.decimals().call();
 
         setDecimals(decimal);
 
-        checkAllowance()
-        
+        checkAllowance();
+
         window.ethereum.on("accountsChanged", async (account) => {
-          setAccount(account)
-          checkAllowance()  
+          setAccount(account);
+          checkAllowance();
         });
       }
     } catch (error) {
       console.log(error);
     }
   };
-  
-  const getCommision = async (e) => {
 
+  const getCommision = async (e) => {
     setUsdc(e.target.value);
 
-    if (e.target.value == 0) { setOT(0); setYT(0); return }
+    if (e.target.value == 0) {
+      setOT(0);
+      setYT(0);
+      return;
+    }
 
-    if (e.target.value > 0 && account!== null) {
-      let _amount = (Math.pow(10, decimals) * e.target.value);
-      console.log(_amount)
+    if (e.target.value > 0 && account !== null) {
+      let _amount = Math.pow(10, decimals) * e.target.value;
+      console.log(_amount);
       try {
         let v = await pendleContract().methods.commissionAmount(_amount).call();
         let OTYTValue = (
           Math.pow(10, -decimals) *
           (Math.pow(10, decimals) * e.target.value - v)
-        ).toFixed(3)
-        setOT(
-          OTYTValue
-        );
-        setYT(
-          OTYTValue
-        );
+        ).toFixed(3);
+        setOT(OTYTValue);
+        setYT(OTYTValue);
       } catch (e) {
         console.log("Commission calculation error", e);
       }
     }
   };
-
+  const getFormatedDate = (date) => {
+    const event = new Date(date * 1000);
+    let month = event.toLocaleDateString(undefined, { month: "short" });
+    let year = event.toLocaleDateString(undefined, { year: "numeric" });
+    let day = event.toLocaleDateString(undefined, { day: "numeric" });
+    return `${day} ${month} ${year}`;
+  };
   return (
     <div className="w-100 overflow-hidden " style={{ background: "#FEFEFF" }}>
       <ToastContainer />
@@ -268,17 +270,20 @@ function App() {
                   <span>Expiry</span>
                 </div>
                 <div className="col date-picker d-flex justify-content-end">
-                  <Dropdown>
-                    <Dropdown.Toggle variant="none" id="dropdown-basic">
-                      29 Dec 2021
-                    </Dropdown.Toggle>
+                  <Form.Select
+                    variant="none"
+                    onChange={(e) => setCurrentDate(e.target.value)}
+                    value={currentDate}
 
-                    <Dropdown.Menu>
-                      <Dropdown.Item href="#/action-1">
-                        29 Dec 2021
-                      </Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown>
+                  >
+                   { console.log(currentDate)}
+                    <option value={null}>{"Select Date"}</option>
+                    {date.map((item, index) => {
+                      return (
+                        <option value={index}>{getFormatedDate(item)}</option>
+                      );
+                    })}
+                  </Form.Select>
                 </div>
               </div>
 
@@ -377,17 +382,14 @@ function App() {
                   {account ? (
                     <button
                       className="card-connect-btn"
-                      onClick={allowance>=usdc?usdcToPendleOTYT:getApproval}
+                      onClick={
+                        allowance >= usdc ? usdcToPendleOTYT : getApproval
+                      }
                     >
-                      {allowance>=usdc?"Swap":
-                      "Approve"
-                       }
+                      {allowance >= usdc ? "Swap" : "Approve"}
                     </button>
                   ) : (
-                    <button 
-                      className="card-connect-btn"
-                      onClick={metamask}
-                    >
+                    <button className="card-connect-btn" onClick={metamask}>
                       Connect wallet
                     </button>
                   )}
