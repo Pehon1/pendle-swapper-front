@@ -15,7 +15,7 @@ import "./styles/index.css";
 
 function App() {
   console.log(process.env.NODE_ENV)
-  console.log(test)
+  console.log(process.env.CONTRACT_ADDRESS)
   const [errorState, setErrorState] = useState(false);
   const [account, setAccount] = useState(null);
   const [allowance, setAllowance] = useState(0);
