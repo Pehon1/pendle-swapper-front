@@ -26,16 +26,14 @@ function App() {
     const amount = usdc;
     setUsdc(amount);
     if (amount < 1) {
-      toast.error("A minimum of 1 eth is required to participate!", {
+      toast.error("A minimum of 1 USDC is required for the swap!", {
         position: toast.POSITION.TOP_RIGHT
       });
-      // alert("A minimum of 1 eth is required to participate!");
     } else {
       if (account === null) {
         toast.error("Whoops..., Metamask is not connected.", {
           position: toast.POSITION.TOP_RIGHT
         });
-        // alert("Whoops..., Metamask is not connected.");
       } else {
         try {
           const web3 = window.web3;
@@ -43,15 +41,13 @@ function App() {
           let contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
 
           if (allowance>=amount) {
-       
             contract.methods
               .usdcToPendleOTYT(
-                (Math.pow(10, decimals) * amount).toString(),
+                amount,
                 "1672272000"
               )
               .send({
-                from: account,
-                amount: (Math.pow(10, decimals) * amount).toString(),
+                from: account
               })
               .on("transactionHash", async (hash) => {
               
@@ -74,7 +70,7 @@ function App() {
           } else {
             let contract2 = new web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
             let approved = await contract2.methods
-              .approve(account, _amount)
+              .approve(CONTRACT_ADDRESS, (Math.pow(10, decimals) * amount).toString())
               .send({ from: account })
               .on("transactionHash", async (hash) => {
                 
@@ -155,7 +151,7 @@ function App() {
         const decimal = await contract2.methods.decimals().call();
         setDecimals(decimal);
         const allowance = await contract2.methods
-          .allowance(accounts[0], accounts[0])
+          .allowance(accounts[0], APPROVE_ADDRESS)
           .call();
         setAllowance(allowance);
         window.ethereum.on("accountsChanged", async function (accounts) {
@@ -163,7 +159,7 @@ function App() {
           let contract2 = new web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
           const decimal = await contract2.methods.decimals().call();
           const allowance = await contract2.methods
-            .allowance(accounts[0], accounts[0])
+            .allowance(accounts[0], APPROVE_ADDRESS)
             .call();
           setDecimals(decimal);
           setAllowance(allowance);
@@ -184,24 +180,18 @@ function App() {
           let _amount = (Math.pow(10, decimals) * e.target.value).toString();
           let contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
           try {
-            // let contract2 = new web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
-            // let approved = await contract2.methods
-            //   .approve(account, _amount)
-            //   .send({ from: account });
             let v = await contract.methods.commissionAmount(_amount).call();
-            // .send({from:account})
-            console.log(v);
             setOT(
               (
                 Math.pow(10, -decimals) *
                 (Math.pow(10, decimals) * e.target.value - v)
-              ).toFixed(2)
+              ).toFixed(3)
             );
             setYT(
               (
                 Math.pow(10, -decimals) *
                 (Math.pow(10, decimals) * e.target.value - v)
-              ).toFixed(2)
+              ).toFixed(3)
             );
           } catch (e) {
             console.log("error rejection", e);
