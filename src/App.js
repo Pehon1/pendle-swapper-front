@@ -228,7 +228,7 @@ if(currentDate===null){
               </a>
             </li>
             <li className="nav-item">
-              <a className=" nav-link header-link-unselected" href="#">
+              <a className=" nav-link header-link-unselected" href="https://github.com/Pehon1/pendle-swapper" target="_blank">
                 {" "}
                 Github
               </a>
@@ -277,10 +277,10 @@ if(currentDate===null){
 
                   >
                    { console.log(currentDate)}
-                    <option value={null}>{"Select Date"}</option>
+                    <option className="option" value={null}>{"Select Date"}</option>
                     {date.map((item, index) => {
                       return (
-                        <option value={index}>{getFormatedDate(item)}</option>
+                        <option className="option" value={index}>{getFormatedDate(item)}</option>
                       );
                     })}
                   </Form.Select>
