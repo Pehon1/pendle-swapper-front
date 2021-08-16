@@ -238,7 +238,7 @@ function App() {
                   account.length - 4,
                   account.length
                 )}`
-              : "Connect"}
+              : "Connect Wallet"}
           </button>
         </nav>
       </header>
