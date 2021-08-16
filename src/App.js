@@ -63,6 +63,7 @@ function App() {
         });
       })
       .on("receipt", async (receipt) => {
+        checkAllowance()
         toast.success("USDC spend approval successful", {
           position: toast.POSITION.TOP_RIGHT
         });
@@ -376,9 +377,11 @@ function App() {
                   {account ? (
                     <button
                       className="card-connect-btn"
-                      onClick={usdcToPendleOTYT}
+                      onClick={allowance>=usdc?usdcToPendleOTYT:getApproval}
                     >
-                      Approve & Swap
+                      {allowance>=usdc?"Swap":
+                      "Approve"
+                       }
                     </button>
                   ) : (
                     <button 
