@@ -2,9 +2,7 @@ import Web3 from "web3";
 import React, { useState, useEffect } from "react";
 import {
   ABI,
-  CONTRACT_ADDRESS,
-  APPROVE_ABI,
-  APPROVE_ADDRESS,
+  APPROVE_ABI
 } from "./constants/data";
 import { ReactComponent as Setting } from "./assets/images/setting.svg";
 import { ReactComponent as ArrowDown } from "./assets/images/arrow-down.svg";
@@ -14,9 +12,6 @@ import "react-toastify/dist/ReactToastify.css";
 import "./styles/index.css";
 
 function App() {
-  console.log(process.env.NODE_ENV)
-  console.log(process.env.REACT_APP_CONTRACT_ADDRESS)
-  console.log(process.env.CONTRACT_ADDRESS)
   const [errorState, setErrorState] = useState(false);
   const [account, setAccount] = useState(null);
   const [allowance, setAllowance] = useState(0);
@@ -54,7 +49,7 @@ function App() {
   const getApproval = async () => {
     await erc20Contract()
       .methods.approve(
-        CONTRACT_ADDRESS,
+        process.env.REACT_APP_CONTRACT_ADDRESS,
         (Math.pow(10, decimals) * usdc).toString()
       )
       .send({ from: account })
@@ -114,11 +109,11 @@ if(currentDate===null){
   };
 
   const erc20Contract = () => {
-    return new window.web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
+    return new window.web3.eth.Contract(APPROVE_ABI, process.env.REACT_APP_APPROVE_ADDRESS);
   };
 
   const pendleContract = () => {
-    return new window.web3.eth.Contract(ABI, CONTRACT_ADDRESS);
+    return new window.web3.eth.Contract(ABI, process.env.REACT_APP_CONTRACT_ADDRESS);
   };
 
   const web3 = async () => {
@@ -146,7 +141,7 @@ if(currentDate===null){
     const _accounts = await accounts();
     try {
       const _allowance = await erc20Contract()
-        .methods.allowance(_accounts[0], CONTRACT_ADDRESS)
+        .methods.allowance(_accounts[0], process.env.REACT_APP_CONTRACT_ADDRESS)
         .call();
       setAllowance(_allowance);
     } catch (error) {

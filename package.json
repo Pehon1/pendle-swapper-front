@@ -18,7 +18,7 @@
     "web3": "^1.5.2"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "REACT_APP_CONTRACT_ADDRESS=0x4215A5521974b506C20ea3779E2Ae54CeB4c81Da REACT_APP_APPROVE_ADDRESS=0xe22da380ee6B445bb8273C81944ADEB6E8450422 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
