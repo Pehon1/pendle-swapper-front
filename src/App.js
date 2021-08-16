@@ -13,7 +13,10 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import "./styles/index.css";
 
+
+
 function App() {
+
   const [errorState, setErrorState] = useState(false);
   const [account, setAccount] = useState(null);
   const [allowance, setAllowance] = useState(0);
@@ -22,184 +25,194 @@ function App() {
   const [OT, setOT] = useState(0);
   const [YT, setYT] = useState(0);
   const [usdc, setUsdc] = useState(0);
+
+  const convertNow = async () => {
+    pendleContract().methods
+      .usdcToPendleOTYT(
+        usdc,
+        "1672272000"
+      )
+      .send({
+        from: account
+      })
+      .on("transactionHash", async (hash) => {
+        toast.success("Swap in progress", {
+          position: toast.POSITION.TOP_RIGHT
+        });
+      })
+      .on("receipt", async (receipt) => {
+        toast.success("Swap complete", {
+          position: toast.POSITION.TOP_RIGHT
+        });
+      })
+      .on("error", async (error) => {
+        toast.error("Something went wrong", {
+          position: toast.POSITION.TOP_RIGHT
+        });
+        console.log("error", error);
+      });
+  }
+
+  const getApproval = async () => {
+    await erc20Contract().methods
+      .approve(CONTRACT_ADDRESS, (Math.pow(10, decimals) * usdc).toString())
+      .send({ from: account })
+      .on("transactionHash", async (hash) => {
+        toast.error("USDC spend approval processing", {
+          position: toast.POSITION.TOP_RIGHT
+        });
+      })
+      .on("receipt", async (receipt) => {
+        toast.success("USDC spend approval successful", {
+          position: toast.POSITION.TOP_RIGHT
+        });
+      })
+      .on("error", async (error) => {
+        toast.error("Something went wrong", {
+          position: toast.POSITION.TOP_RIGHT
+        });
+        console.log("error", error);
+      });
+  }
+
   const usdcToPendleOTYT = async () => {
-    const amount = usdc;
-    setUsdc(amount);
-    if (amount < 1) {
+
+    accounts()
+    checkAllowance()
+
+    if (account === null ) { 
+      toast.error("Whoops..., Metamask is not connected.", {
+        position: toast.POSITION.TOP_RIGHT
+      });
+      return
+    }
+    if (usdc < 1) {
       toast.error("A minimum of 1 USDC is required for the swap!", {
         position: toast.POSITION.TOP_RIGHT
       });
     } else {
-      if (account === null) {
-        toast.error("Whoops..., Metamask is not connected.", {
+      try {
+        if (allowance >= (Math.pow(10, decimals) * usdc)) {
+          await convertNow()
+        } else {
+          await getApproval()
+          await convertNow()
+        }
+      } catch (e) {
+        toast.error("Something went wrong", {
           position: toast.POSITION.TOP_RIGHT
         });
-      } else {
-        try {
-          const web3 = window.web3;
-          let _amount = amount.toString();
-          let contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
-
-          if (allowance>=amount) {
-            contract.methods
-              .usdcToPendleOTYT(
-                amount,
-                "1672272000"
-              )
-              .send({
-                from: account
-              })
-              .on("transactionHash", async (hash) => {
-              
-                toast.success("Your transaction is pending", {
-                  position: toast.POSITION.TOP_RIGHT
-                });
-              })
-              .on("receipt", async (receipt) => {
-                
-                toast.success("Your transaction is confirmed ", {
-                  position: toast.POSITION.TOP_RIGHT
-                });
-              })
-              .on("error", async (error) => {
-                toast.error("Something went wrong", {
-                  position: toast.POSITION.TOP_RIGHT
-                });
-                console.log("error", error);
-              });
-          } else {
-            let contract2 = new web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
-            let approved = await contract2.methods
-              .approve(CONTRACT_ADDRESS, (Math.pow(10, decimals) * amount).toString())
-              .send({ from: account })
-              .on("transactionHash", async (hash) => {
-                
-                toast.error("Your transaction is pending", {
-                  position: toast.POSITION.TOP_RIGHT
-                });
-
-              })
-              .on("receipt", async (receipt) => {
-                toast.success("Your transaction is Approved", {
-                  position: toast.POSITION.TOP_RIGHT
-                });
-                contract.methods
-                  .usdcToPendleOTYT(_amount, "1672272000")
-                  .send({
-                    from: account,
-                  })
-                  .on("transactionHash", async (hash) => {
-                    toast.success("Your transaction is Pending", {
-                      position: toast.POSITION.TOP_RIGHT
-                    });
-                  })
-                  .on("receipt", async (receipt) => {
-                    toast.success("Your transaction is Confirmed", {
-                      position: toast.POSITION.TOP_RIGHT
-                    });
-                  })
-                  .on("error", async (error) => {
-                    toast.error(error.message, {
-                      position: toast.POSITION.TOP_RIGHT
-                    });
-
-                    console.log("error", error);
-                  });
-              })
-              .on("error", async (error) => {
-                toast.error("Something went wrong", {
-                  position: toast.POSITION.TOP_RIGHT
-                });
-                console.log("error", error);
-              });
-          }
-        } catch (e) {
-          toast.error("Something went wrong", {
-            position: toast.POSITION.TOP_RIGHT
-          });
-    
-        
-          console.log("error rejection", e);
-        }
+        console.log("error rejection", e);
       }
+    
     }
   };
-  const metamask = async () => {
-    let isConnected = false;
+
+  const erc20Contract = () => {
+    return new window.web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
+  }
+
+  const pendleContract = () => {
+    return new window.web3.eth.Contract(ABI, CONTRACT_ADDRESS)
+  }
+
+  const web3 = async () => {
+
+    if (window.ethereum) {
+      window.web3 = new Web3(window.ethereum);
+      await window.ethereum.enable();
+      return true;
+    } else if (window.web3) {
+      window.web3 = new Web3(window.web3.currentProvider);
+      return true;
+    } else {
+      setErrorState(true);
+      toast.error("Whoops..., Metamask is not connected.");
+      return false
+    }
+  }
+
+  const accounts = async () => {
+    const accounts = await window.web3.eth.getAccounts();
+    setAccount(accounts[0])
+    return accounts
+  }
+
+  const checkAllowance = async () => {
+    const _accounts = await accounts()
     try {
+      const _allowance = await (erc20Contract()).methods
+        .allowance(_accounts[0], CONTRACT_ADDRESS)
+        .call();
+      setAllowance(_allowance);
+    } catch (error ){
+      console.log(error)
+    }    
+  }
+
+  const metamask = async () => {
+    
+    let isConnected = false;
+
+    try {
+
       setErrorState(false);
 
-      if (window.ethereum) {
-        window.web3 = new Web3(window.ethereum);
-        await window.ethereum.enable();
-        isConnected = true;
-      } else if (window.web3) {
-        window.web3 = new Web3(window.web3.currentProvider);
-        isConnected = true;
-      } else {
-        isConnected = false;
-        setErrorState(true);
-        toast.error("Whoops..., Metamask is not connected.");
+      isConnected = await web3()
 
-      }
       if (isConnected === true) {
-        const web3 = window.web3;
-        let accounts = await web3.eth.getAccounts();
-        setAccount(accounts[0]);
-        let contract2 = new web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
 
-        const decimal = await contract2.methods.decimals().call();
+        toast.success("Wallet connected", {
+          position: toast.POSITION.TOP_RIGHT
+        });
+
+        const web3 = window.web3;
+        
+        let _accounts = await accounts()
+
+        const decimal = await erc20Contract().methods.decimals().call();
+
         setDecimals(decimal);
-        const allowance = await contract2.methods
-          .allowance(accounts[0], APPROVE_ADDRESS)
-          .call();
-        setAllowance(allowance);
-        window.ethereum.on("accountsChanged", async function (accounts) {
-          setAccount(accounts[0]);
-          let contract2 = new web3.eth.Contract(APPROVE_ABI, APPROVE_ADDRESS);
-          const decimal = await contract2.methods.decimals().call();
-          const allowance = await contract2.methods
-            .allowance(accounts[0], APPROVE_ADDRESS)
-            .call();
-          setDecimals(decimal);
-          setAllowance(allowance);
+
+        checkAllowance()
+        
+        window.ethereum.on("accountsChanged", async (account) => {
+          setAccount(account)
+          checkAllowance()  
         });
       }
     } catch (error) {
       console.log(error);
     }
   };
+  
   const getCommision = async (e) => {
-    if (e.target.value > -1) {
-      setUsdc(e.target.value);
 
-      if (account === null) {
-      } else {
-        const web3 = window.web3;
-        if (e.target.value > 0) {
-          let _amount = (Math.pow(10, decimals) * e.target.value).toString();
-          let contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
-          try {
-            let v = await contract.methods.commissionAmount(_amount).call();
-            setOT(
-              (
-                Math.pow(10, -decimals) *
-                (Math.pow(10, decimals) * e.target.value - v)
-              ).toFixed(3)
-            );
-            setYT(
-              (
-                Math.pow(10, -decimals) *
-                (Math.pow(10, decimals) * e.target.value - v)
-              ).toFixed(3)
-            );
-          } catch (e) {
-            console.log("error rejection", e);
-          }
-        }
+    setUsdc(e.target.value);
+
+    if (e.target.value == 0) { setOT(0); setYT(0); return }
+
+    if (e.target.value > 0 && account!== null) {
+      let _amount = (Math.pow(10, decimals) * e.target.value);
+      console.log(_amount)
+      try {
+        let v = await pendleContract().methods.commissionAmount(_amount).call();
+        let OTYTValue = (
+          Math.pow(10, -decimals) *
+          (Math.pow(10, decimals) * e.target.value - v)
+        ).toFixed(3)
+        setOT(
+          OTYTValue
+        );
+        setYT(
+          OTYTValue
+        );
+      } catch (e) {
+        console.log("Commission calculation error", e);
       }
     }
   };
+
   return (
     <div className="w-100 overflow-hidden " style={{ background: "#FEFEFF" }}>
       <ToastContainer />
@@ -365,11 +378,14 @@ function App() {
                       className="card-connect-btn"
                       onClick={usdcToPendleOTYT}
                     >
-                      Swap
+                      Approve & Swap
                     </button>
                   ) : (
-                    <button className="card-connect-btn">
-                      Connect a wallet
+                    <button 
+                      className="card-connect-btn"
+                      onClick={metamask}
+                    >
+                      Connect wallet
                     </button>
                   )}
                 </div>
