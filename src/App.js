@@ -15,6 +15,7 @@ import "./styles/index.css";
 
 function App() {
   console.log(process.env.NODE_ENV)
+  console.log(process.env.REACT_APP_CONTRACT_ADDRESS)
   console.log(process.env.CONTRACT_ADDRESS)
   const [errorState, setErrorState] = useState(false);
   const [account, setAccount] = useState(null);
